@@ -703,3 +703,48 @@ However the mask permission is rw-, hence, bob only has rw- at max permission
 ```
 
 ### Deleting ACL
+
+Flag | Explanation
+--- | ---
+-x | Remove specific ACL
+-k | Remove all default ACLs
+-b | Remove all ACLs
+
+**Examples**  
+`setfacl -x u:root acldeldir/`  
+`setfacl -x root acldeldir`, if you do not specify anything, by default, it is user  
+`setfacl -x default:user:root acldeldir`, to delete default ACL  
+`setfacl -d acldeldir`, to delete all default ACLs  
+`setfacl -b acldeldir`, to delete all ACLs  
+
+### Random ACL Tricks
+
+**Example 1: Setting File2 to have File1 ACL Settings**  
+```bash
+mkdir dir1
+cd dir1/
+touch file{1,2}.txt
+# Set ACL for every file
+setfacl -R -m u:root:rwx .
+# View acl information
+ls -l
+# Result
+-rw-rwxr--+ 1 chanjl chanjl 0 Jun  6 22:17 file1.txt
+-rw-rwxr--+ 1 chanjl chanjl 0 Jun  6 22:17 file2.txt
+# For file2 to have file1 acl settings
+getfacl file1.txt | setfacl --set-file=- file2.txt
+```
+**Example 2: Setting ACL Settings from a textfile**  
+```bash
+# Save acl information from file1.txt to acls.txt
+getfacl -c file1.txt > acls.txt
+# Set acl from acls.txt
+setfacl -M acls.txt file1.txt
+```
+**Example 3: Set the entire folder ACL Settings from a file**  
+```bash
+# Save acl settings from folder
+getfacl -R dir1 > dir1tree.facl
+# Restore acl settings
+setfacl --restore dir1tree.facl
+```
