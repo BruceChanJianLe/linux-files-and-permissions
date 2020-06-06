@@ -562,3 +562,144 @@ The sticky bit is generally use for shared directories like /tmp
 - Not build into Linux  
 - Can be turned off  
 - Uses new, unfamiliar commands  
+
+**Example 1**
+```bash
+# Create a directory and a file
+mkdir aclexercise
+cd aclexercise
+touch aclfile
+# View metadata
+ls -l
+# Result
+-rw-rw-r-- 1 chanjl chanjl 0 Jun  6 21:23 aclfile
+# View acl information
+getfacl aclfile
+# Restul
+# file: aclfile
+# owner: chanjl
+# group: chanjl
+user::rw-
+group::rw-
+other::r--
+
+# Another way to view acl information
+getfacl -t aclfile
+# Result
+# file: aclfile
+USER   chanjl    rw-     
+GROUP  chanjl    rw-     
+other            r--     
+
+# Set acl permission, -m for modify
+setfacl -m user:root:rwx aclfile
+# View metadata
+ls -l
+# Result (notice the + at the end)
+-rw-rwxr--+ 1 chanjl chanjl 0 Jun  6 21:23 aclfile
+# View acl information
+getfacl aclfile
+# Result
+# file: aclfile
+# owner: chanjl
+# group: chanjl
+user::rw-
+user:root:rwx
+group::rw-
+mask::rwx
+other::r--
+
+# Explanation
+Notice the root has been added as a user
+And there is a mask row which states the highest allowed permission
+```
+
+Use `man getfacl` and `man setfacl` for more information.
+
+Using the acl command:  
+`sudo setfacl -m user:<username>:<permissions> <file>`  
+`sudo setfacl -m group:<groupname>:<permissions> <file>`  
+**Examples**  
+`sudo setfacl -m user:bob:rwx /home/file.txt`  
+`sudo setfacl -m group:accounting:rx file.txt`  
+`sudo setfacl -m user:bob:rwx,group:accounting:rx file.txt`  
+`sudo setfacl -m u:bob:rwx,g:accounting:rx file.txt`  
+`sudo setfacl -m user::rwx file.txt` = `sudo chmod u=rwx file.txt`  
+
+**Example 2**  
+```bash
+# Create a directory with sudo
+sudo mkdir dir1
+# Create files inside
+sudo touch dir1/file{01..10}.txt
+# Set permission for bob to access directory
+sudo setfacl -m u:bob:rwx dir1/
+# View acl information
+getfacl dir1/
+# Result
+# file: dir1/
+# owner: root
+# group: root
+user::rwx
+user:bob:rwx
+group::r-x
+mask::rwx
+other::r-x
+
+# Set permission for bob to access all the files inside directory
+sudo setfacl -R -m u:bob:rwx dir1/
+# View metadata of all files inside dir1/
+sudo ls -l dir1/
+# Result
+total 0
+-rw-rwxr--+ 1 root root 0 Jun  6 21:58 file01.txt
+-rw-rwxr--+ 1 root root 0 Jun  6 21:58 file02.txt
+-rw-rwxr--+ 1 root root 0 Jun  6 21:58 file03.txt
+-rw-rwxr--+ 1 root root 0 Jun  6 21:58 file04.txt
+-rw-rwxr--+ 1 root root 0 Jun  6 21:58 file05.txt
+-rw-rwxr--+ 1 root root 0 Jun  6 21:58 file06.txt
+-rw-rwxr--+ 1 root root 0 Jun  6 21:58 file07.txt
+-rw-rwxr--+ 1 root root 0 Jun  6 21:58 file08.txt
+-rw-rwxr--+ 1 root root 0 Jun  6 21:58 file09.txt
+-rw-rwxr--+ 1 root root 0 Jun  6 21:58 file10.txt
+# Set dir1 to give rwx permissions for future files created in dir1
+sudo setfacl -d -m u:bob:rwx dir1/
+# View acl information
+getfacl dir1/
+# Result
+# file: dir1/
+# owner: root
+# group: root
+user::rwx
+user:bob:rwx
+group::r-x
+mask::rwx
+other::r-x
+default:user::rwx
+default:user:bob:rwx
+default:group::r-x
+default:mask::rwx
+default:other::r-x
+
+# Explanation
+Notice that the default user bob has rwx permission.
+# Test it by creating a file
+sudo touch dir1/text123.txt
+# View acl information
+getfacl dir1/text123.txt
+# Result
+# file: dir1/text123.txt
+# owner: root
+# group: root
+user::rw-
+user:bob:rwx                    #effective:rw-
+group::r-x                      #effective:r--
+mask::rw-
+other::r--
+
+# Explanation
+Notice that bob is a user with rwx permission
+However the mask permission is rw-, hence, bob only has rw- at max permission
+```
+
+### Deleting ACL
