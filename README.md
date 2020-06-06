@@ -274,3 +274,94 @@ Modify: 2020-06-06 15:15:25.932075388 +0800
 Change: 2020-06-06 15:15:25.932075388 +0800
  Birth: -
 ```
+**Disadvantages**  
+- Take up a small amount of space  
+- Break if the target is deleted  
+**Advantages**
+- Can link across filesystems  
+- Can link to directories  
+- Easy to identify (ls -l)  
+
+### Standard Linux Permissions Overview
+**Features of Standard Linux Permissions**  
+- Users can belong to multiple groups (group cannot contain other group)  
+- Files belong to one user owner  
+- Files belong to one group owner  
+- Permissions can be set for the user, group, or other  
+
+**Features of Standard Linux**  
+- Users can read, write, or execute files  
+- Users can list, create new files and traverse directories  
+- Permissions support privilege escalation  
+- Permissions support group owner inheritance  
+- They support default file permissions  
+
+**Shortfalls of Standard Linux Permissions**  
+- Files and directories can only belong to one user  
+- Files and directories can only belong to one group  
+- Permissions set for other are not concise  
+- Inheritance only support group ownership and not permissions  
+- There is no easy way to back up and restore permissions  
+- There is no easy way to temporarily restrict permissions  
+
+### File Ownership
+The command to change the ownership of a file is `chown`.  
+`chown [options] <user>:<group> <file>`
+**Method 1**  
+```bash
+# Example
+sudo chown bob file.txt
+# Explanation
+Setting user ownership to bob
+```
+**Method 2**  
+```bash
+# Example
+sudo chown :bobgroup file.txt
+# Explanation
+Setting group ownership to bobgroup
+```
+**Method 3**  
+```bash
+# Example
+sudo chown -r bob:bobgroup /home/bob
+# Explanation
+Setting every file inside /home/bob directory to bob:bobgroup ownership
+Note that user and group need to exist before you can set them
+# To add user
+sudo useradd testuser
+# To view user
+cat /etc/passwd
+# To add group
+sudo groupadd testgroup
+# To view group
+cat /etc/group
+```
+
+### File Permissions in Numeric Mode
+The command to set the permission of a file is `chmod`.  
+`chmod [options] <permissions> <filename>`  
+
+Command | Equals | Value
+--- | --- | ---
+Read | = | 4
+Write | = | 2
+Execute | = | 1
+
+Therefore, `rwx` means `4 + 2 + 1 = 7`  
+
+**Method 1**  
+```bash
+# First create a file
+touch file.txt
+# View permission
+ls -l
+# Result
+-rw-rw-r-- 1 chanjl chanjl     0 Jun  6 15:45 file.txt
+# Lets change to permission
+chmod 750 file.txt
+# View permission
+ls -l
+# Result
+-rwxr-x--- 1 chanjl chanjl     0 Jun  6 15:45 file.txt
+```
