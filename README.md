@@ -105,11 +105,172 @@ Question Mark ? | Matches with any one of the characters | `??.txt` --> 12.txt, 
 Character Sets [] | Matches one character in the list | `file[0-9].txt` --> file1.txt, file8.txt; `file[abc123].jpg` --> filea.jpg, file3.jpg
 Hyphen - | Matches a hyphen | `file[-0-9].txt` --> file-.txt, file1.txt
 Negates ! | Negates a match | `file[!0-9].txt` --> filea.txt, fileb.txt but not file1.txt
-Digit [:digit:] | Matches numbers | `[:digit:]`
-Uppercase [:upper:] | Matches uppercase characters | `[:upper:]`
+Digit [:digit:] | Matches numbers | `file[[:digit:]].txt` --> file1002432.txt 
+Uppercase [:upper:] | Matches uppercase characters | `file[[:upper:]]` --> fileXX.txt
 Lowercase [:lower:] | Matches lowercase characters | `[:lower:]`
 Alphabets (upper or lower) [:alpha:] | Matches upper and lower case characters | `[:alpha:]`
 Alphabets and Numbers [:alnum:] | Matches upper, lower case characters and numbers | `[:alnum:]`
-Spaces Tabs Newlines [:space:] | Matches spaces, tabs, newlines | `[:space:`
-Character Classes [:xxx:] | Matches one character of a certain type | `[:digit:]` --> Numbers; `[:upper:]` --> Uppercase characters; `[:lower:]` --> Lowercase characters; `[:alpha:]` --> Uppercase and lowercase; `[:alnum:]` --> Uppercase and lowercase plus numbers; `[:space:]` --> Spaces, tabs, newlines
+Spaces Tabs Newlines [:space:] | Matches spaces, tabs, newlines | `[:space:]`
+Graph [:graph:] | Matches printable characters not including spaces | `[:graph:]`
+Print [:print:] | Matches printable characters including spaces | `[:print:]`
+Punctuation [:punct:] | Matches punctuation | `[:punct:]`
+Non-printable [:cntrl:] | Matches non-printable control characters | `[:cntrl:]`
+Hexadecimal Characters [:xdigit:] | Matches hexadecimal characters | `[:xdigit:]`
 
+**Method 1**  
+```bash
+ls file[0-9].txt
+```
+**Method 2**  
+```bash
+ls file[[:digit:]].txt
+```
+**Method 3**  
+```bash
+ls file[[:xdigit:][:space:]].txt
+```
+**Method 4**
+```bash
+ls file[![:digit:]].txt
+```
+
+### File Globbing: Brace Expansion  
+```bash
+# Command
+ls {*.jpg, *.gif, *png}
+# Result
+a.jpg
+b.jpg
+c.gif
+d.png
+```
+
+### File Globbing: Extended Glob
+```bash
+# To check if Extended Glob is turn on
+# Shell options, and look for extglob
+shopt | grep extglob
+# To turn on Extended Glob
+shopt -s extglob
+```
+
+**Advantages**  
+- Specify the number of matches  
+- Allow grouping matches  
+- Patterns can be more than one character  
+- Logical OR
+
+**Method 1**  
+`?(match)` | 0 or 1 occurrence of pattern match  
+```bash
+# Example command
+ls | grep file?(abc).txt
+# Result
+file.txt
+fileabc.txt
+```
+**Method 2**  
+`+(match)` | 1 or more occurrences of pattern match  
+```bash
+# Example command
+ls file+(abc).txt
+# Result
+fileabc.txt
+fileabcabc.txt
+```
+**Method 3**  
+`+(match1|match2)` | match one or the other pattern  
+```bash
+# Example command
+ls +(*.jpg|*gif)
+# Result
+photo.jpg
+file.jpg
+photo.gif
+file.gif
+```
+**Method 4**  
+`*(match)` | 0 or more occurrences of pattern match
+```bash
+# Example command
+ls photo*(abc).jpg
+# Result
+photo.jpg
+photoabc.jpg
+photoabcabc.jpg
+```
+**Method 5**  
+`!(match)` | invert the pattern match  
+```bash
+# Example command
+ls !(*.jpg|*.gif)
+# Result
+file.txt
+fileabc.txt
+fileabcabc.txt
+```
+**Method 6**  
+`!(+(match)*+(match))` | group pattern matches  
+```bash
+# Example command
+ls !(+(photo|file)*+(.jpg|.gif))
+# Result
+All files that do not start with photo or file and do not end with .jpg or .gif
+```
+
+### Creating Links
+**Hard Link**
+Linking file with hard link mean these files will the exactly the same. They behave linke smartpointers, only when all pointers are destroyed are then the memory is freed. You can verify by the Inode which for regular file should be 1.
+```bash
+# Example
+touch file.txt
+# Hard link file.txt
+ln file.txt filelink.txt
+# View inode
+ll
+# Result
+-rw-rw-r--  2 chanjl chanjl     0 Jun  6 15:06 filelink.txt
+-rw-rw-r--  2 chanjl chanjl     0 Jun  6 15:06 file.txt
+# Another way to view
+stat file.txt
+# Result
+  File: 'file.txt'
+  Size: 0               Blocks: 0          IO Block: 4096   regular empty file
+Device: 10305h/66309d   Inode: 5512893     Links: 2
+Access: (0664/-rw-rw-r--)  Uid: ( 1000/  chanjl)   Gid: ( 1000/  chanjl)
+Access: 2020-06-06 15:06:29.312064233 +0800
+Modify: 2020-06-06 15:06:29.312064233 +0800
+Change: 2020-06-06 15:06:39.236064439 +0800
+ Birth: -
+```
+**Disadvantages**  
+- Cannot link to directories  
+- Cannot link across filesystems  
+- Hard to identify  
+**Advantages**  
+- Take up virtually no space  
+- Do not break when target is deleted  
+
+**Symbolic Link**
+Symbolic linke is a file that points to another file.  
+```bash
+# Example
+touch file.txt
+# Symbolick link file.txt
+ln -s file.txt filesymlink.txt
+# View metadata of the file.txt
+ll
+# Result
+lrwxrwxrwx  1 chanjl chanjl     8 Jun  6 15:15 filesymlink.txt -> file.txt
+# Another way to view
+stat filesymlink.txt
+# Result
+  File: 'filesymlink.txt' -> 'file.txt'
+  Size: 8               Blocks: 0          IO Block: 4096   symbolic link
+Device: 10305h/66309d   Inode: 5512991     Links: 1
+Access: (0777/lrwxrwxrwx)  Uid: ( 1000/  chanjl)   Gid: ( 1000/  chanjl)
+Access: 2020-06-06 15:15:25.936075388 +0800
+Modify: 2020-06-06 15:15:25.932075388 +0800
+Change: 2020-06-06 15:15:25.932075388 +0800
+ Birth: -
+```
