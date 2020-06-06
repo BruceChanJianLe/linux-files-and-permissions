@@ -461,3 +461,104 @@ sudo find / -perm -2000
 ```
 
 ### Sticky
+SGID and sticky are special bits for directories.  
+**Example 1: SGID**
+```bash
+# Create a directory with sudo
+sudo mkidr accounting
+# View metadata
+ls -l
+# Result
+drwxr-xr-x  2 root   root    4096 Jun  6 17:19 accounting
+# Create a group called accounting
+sudo addgroup accounting
+# Result
+Adding group `accounting` (GID 1002) ...
+Done.
+# Change the owner permission
+sudo chown :accounting accounting/
+# View metadata
+ls -l
+# Result
+drwxr-xr-x 2 root   accounting  4096 Jun  6 17:19 accounting
+# Let's add SGID for the directory
+sudo chmod 2770 accounting/
+# View metadata
+ls -l
+# Result
+drwxrws--- 2 root   accounting  4096 Jun  6 17:19 accounting
+# Create user bob under accounting group
+sudo useradd -G accounting bob
+# Create a passwd for bob
+sudo passwd bob
+# Login as bob
+su - bob
+# Source my .bashrc (To display things better)
+. /home/chanjl/.bashrc
+# Go to the directory
+cd /home/chanjl/accounting
+# Create file
+touch file.txt
+# View metadata
+ls -l
+# Result
+-rw-rw-r-- 1 bob accounting 0 Jun  6 18:18 file.txt
+# Explanation
+You can see that only those under the accounting group can
+```
+Anyone who creates a file inside this directory `accounting` will have group permission of `accounting`.  
+However, note that that person who wishes to create a file in the directory must belong under the accounting group.  
+Else, he will not even be able to cd into the directory.  
+
+**Example 2: Sticky**  
+```bash
+# Create a directory with sudo
+sudo mkdir stickydir
+# View metadata
+ls -l
+# Result
+drwxr-xr-x 2 root   root    4096 Jun  6 19:06 stickydir
+# Change the permission
+sudo chmod 1777 stickydir/
+# View metadata
+ls -l
+# Result
+drwxrwxrwt 2 root   root    4096 Jun  6 19:06 stickydir
+# Explanation
+The `t` at the end prevents other user from modifying, renaming and deleting your file
+# Create a file inside the directory
+touch stickydir/file.txt
+# Change permission of the file so that anyone can delete it
+chmod 777 stickydir/file.txt
+# View metadata
+ls -l
+# Result
+-rwxrwxrwx 1 chanjl chanjl 0 Jun  6 19:09 file.txt
+# Let's go to bob and try to delete it
+su - bob
+# Source my own .bashrc
+cd /home/chanjl
+. .bashrc
+# Delete file
+cd stickydir
+rm file.tx
+# Result
+rm: cannot remove 'file.txt': Operation not permitted
+# To remove them use sudo 
+```
+
+The sticky bit is generally use for shared directories like /tmp
+
+### Access Control List (ACL)
+**Advantages**  
+- Permissions can be set for multiple users  
+- Permissions can be set for multiple groups  
+- User and group permissions can be inherited  
+- There is easy backup and restore of permissions  
+- There is easy temporary restriction of permissions  
+
+**Disadvantages**  
+- Not always installed  
+- Not build into Linux  
+- Can be turned off  
+- Uses new, unfamiliar commands  
