@@ -748,3 +748,10 @@ getfacl -R dir1 > dir1tree.facl
 # Restore acl settings
 setfacl --restore dir1tree.facl
 ```
+**Example 4: Setting mask**  
+```bash
+# Set mask to no permission
+setfacl -m mask::- dir1
+# Unset mask to rwx permission
+setfacl -m mask::rwx dir1
+```
