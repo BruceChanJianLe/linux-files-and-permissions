@@ -365,3 +365,99 @@ ls -l
 # Result
 -rwxr-x--- 1 chanjl chanjl     0 Jun  6 15:45 file.txt
 ```
+
+### File Permissions in Numeric Mode
+The command to set the permission of a file is `chmod`.  
+`chmod [options] <permissions> <filename>`  
+
+Who | Representation | Examples
+--- | --- | ---
+User | u | u=rwx; u=rx; u+rwx
+Group | g | g=rw; g+rwx; g-w
+Other | o | o=rwx; o=; o-x
+
+**Method 1**  
+```bash
+# Example
+chmod a-x file.txt
+# Explanation
+Take away executable permission for all (user, group, other
+```
+**Method 2**  
+```bash
+# Example
+chmod ugo+x file.txt
+# explanation
+Add executable permission for all (user, group, other)
+```
+
+### UMask (Default Permission)
+The default permission when files are create are called `umask`.  
+
+**To view umask**  
+```bash
+# To view umask
+umask
+# Result
+0002
+# Another way
+umask -S
+# Result
+u=rwx,g=rwx,o=rx
+```
+
+Symbolic | Numeric | Description
+--- | --- | ---
+rwxrwxrwx | 777 | Maximum initial permissions for directories
+rw-rw-rw | 666 | Maximum initial permissions for files
+
+To understand umask result, we do this.  
+Take the maximum permission minus the output.  
+`777 - 002 = 775` or `rwxrwxr-x` | for directory  
+`666 - 002 = 664` or `rw-rw-r--` | for files (due to safety reasons)
+
+### Special file bits: SUID and SGID
+
+The SUID bit elevates privileges to the file's owner when executed. The SGID bit elevates privileges to the file's group owner when executed. 
+
+Special Bits | Equal | Numeric
+--- | --- | ---
+SUID | = | 4
+SGID | = | 2
+Sticky | = | 1
+
+SUID: Regular user like Bob executes `sudo` will get the priviledge of `root`.  
+SUID: Runs as the user owner.  
+```bash
+# Example
+ls -l /usr/bin/sudo
+# Result
+-rwsr-xr-x 1 root root 136808 Feb  1 02:37 /usr/bin/sudo
+# Explanation
+The `s` here means executable permission is set, if it is `S` capital means it is not set which is the only way to know if it is set or unset.  
+```
+
+**Set SUID Permission**  
+```bash
+# Method 1
+chmod 4755 /usr/bin/su
+# Method 2
+chmod u+s /usr/bin/su
+```
+**Set SGID Permission**  
+```bash
+# Method 1
+chmod 2755 /usr/bin/screen
+# Method 2
+chmod g+s /usr/bin/screen
+```
+**Looking for SUID Permission Files**  
+```bash
+sudo find / -perm -4000
+```
+**Looking for SGID Permission Files**  
+```bash
+sudo find / -perm -2000
+```
+
+### Sticky
