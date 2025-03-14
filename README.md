@@ -3,6 +3,8 @@
 This is a summary of the Linux's files and permissions.
 
 ## Practical Example
+
+**Limiting Access**:  
 With the knowledge, one could limit other users from accessing your data.
 For example, if you have two users in a system, `user1` and `user2`.
 `user1` could change its home directory permission to `700` so that only
