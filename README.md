@@ -12,6 +12,13 @@ he or she is able to access it.
 sudo chmod 700 /home/user1
 ```
 
+**View File Permission**:  
+```bash
+stat -c "%a %n" filename
+# stat -c "%a %n" 3d_lidars_2024-11-12-17-13-10_0.bag
+# 755 3d_lidars_2024-11-12-17-13-10_0.bag
+```
+
 ## File
 
 Type | ll
